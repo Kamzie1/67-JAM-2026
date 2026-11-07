@@ -9,4 +9,11 @@ namespace YANG
     { 
         IncreaseRegen
     }
+
+    public enum TurnPhase
+    {
+        NotStarted,
+        PlayerAction,
+        Resolving,
+    }
 }
