@@ -12,7 +12,7 @@ namespace YANG
             switch (card)
             {
                 case CardOnMapData m:
-                    map.Apply(m.Action);
+                    map.Apply(m.Action, m.IdWorksOn);
                     break;
 
                 case CardOnPlayerData p:

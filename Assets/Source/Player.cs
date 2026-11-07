@@ -5,10 +5,10 @@ namespace YANG
 {
     public class Player
     {
-        private readonly List<CardData> originalDeck;
-        private readonly List<CardData> currentDeck;
-        private readonly List<CardData> handDeck = new();
-        private readonly List<CardData> discardedDeck = new();
+        protected readonly List<CardData> originalDeck;
+        protected readonly List<CardData> currentDeck;
+        protected readonly List<CardData> handDeck = new();
+        protected readonly List<CardData> discardedDeck = new();
         private readonly Random rng = new();
 
         private int handSize;
@@ -34,7 +34,7 @@ namespace YANG
             handSize = 5;
         }
 
-        public void StartTurn(int cardsToDraw)
+        public virtual void StartTurn(int cardsToDraw)
         {
             CurrentActionPoints = Math.Min(MaxActionPoints, CurrentActionPoints + ActionPointsRegen);
             DrawCard(cardsToDraw);

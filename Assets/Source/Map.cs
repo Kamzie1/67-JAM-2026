@@ -142,7 +142,7 @@ namespace YANG
             return Highlights;
         }
 
-        public List<Position> AppliablePositions(List<int> ids)
+        public List<Position> AppliablePositions(IReadOnlyList<int> ids)
         {
             List<Position> positions = new List<Position>();
             foreach (var o in _objects)

@@ -131,14 +131,15 @@ namespace YANG
             }
         }
 
-        public void Highlight(List<int> ids)
+        public void Highlight(IReadOnlyList<int> ids)
         {
             highlighter.HighlightTiles(_map.AppliablePositions(ids).ConvertAll(Position.PositionToVector3));
         }
         
-        public void Apply(ActionOnMap action)
+        public void Apply(ActionOnMap action, IReadOnlyList<int> ids)
         {
             _action = action;
+            Highlight(ids);
         }
 
     }
