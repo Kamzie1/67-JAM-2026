@@ -4,7 +4,7 @@
     {
         public Base(int id, Position position, int playerId) : base(id, position, playerId)
         {
-            Health = 100;
+            Health = 10;
         }
     }
 }

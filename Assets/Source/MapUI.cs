@@ -46,10 +46,10 @@ namespace YANG
         private void CreateFleet()
         {
            SpawnBase(new Position(7, 0), 0);
-           SpawnBase(new Position(7, 14), 1);
+           SpawnBase(new Position(8, 2), 1);
            
            SpawnShip(new Position(7, 1), 0, 0);
-           SpawnShip(new Position(7, 13), 1, 0);
+           SpawnShip(new Position(7, 3), 1, 0);
         }
 
         private void SpawnBase(Position position, int playerId)
@@ -79,6 +79,7 @@ namespace YANG
             {
                 Destroy(toDestroy.gameObject);
                 _sprites.Remove(toDestroy);
+                _map.Objects.Remove(obj);
             }
         }
 
@@ -187,7 +188,7 @@ namespace YANG
                 {
                     return "";
                 }
-                return $@"\t{data.name}\n{data.Description}\n-------\nHealth: {data.Health}\nDamage: {data.Damage}\nMovement: {data.Movement}\nRange: {data.Range}";
+                return $@"\t{data.name}\n{data.Description}\n-------\nHealth: {ship.Health}\nDamage: {ship.Damage}\nMovement: {ship.Movement}\nRange: {ship.Range}";
             }
 
             return "";
@@ -279,7 +280,7 @@ namespace YANG
         {
             _action = action;
             _player = playerId;
-            highlighter.HighlightTiles(_map.AppliablePositions(ids, _player), _map.Rows, _map.Cols);
+            highlighter.HighlightTiles(_map.AppliablePositions(action, ids, _player), _map.Rows, _map.Cols);
         }
 
         public void Reset()

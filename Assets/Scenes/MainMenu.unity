@@ -786,7 +786,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6bcc6ee0c24900c4f9800ea2f5e9825b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  quickGameScene: {fileID: 102900000, guid: 8c9cfa26abfee488c85f1582747f6a02, type: 3}
+  quickGameSceneName: QuickGame
 --- !u!1 &1538351069
 GameObject:
   m_ObjectHideFlags: 0

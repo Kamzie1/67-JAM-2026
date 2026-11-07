@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace YANG
@@ -16,8 +17,10 @@ namespace YANG
 
         public void DoTurn()
         {
-            foreach (var card in handDeck)
+            Random rnd = new();
+            for (int i = 0; i < 5; i++)
             {
+                var card = handDeck[rnd.Next(0, handDeck.Count)];
                 PayAndDiscard(card);
             }
             EndTurn();

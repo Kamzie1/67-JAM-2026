@@ -43,7 +43,7 @@ namespace YANG
             CurrentPlayerId = 0;
             BeginTurn();
         }
-
+        
         private void BeginTurn()
         {
             executor.Reset();

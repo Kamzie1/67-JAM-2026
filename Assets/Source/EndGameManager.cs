@@ -1,4 +1,5 @@
-﻿using TMPro;
+﻿using System;
+using TMPro;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -7,27 +8,24 @@ namespace YANG
 {
     public class EndGameManager : MonoBehaviour
     {
-        [SerializeField] private SceneAsset MainMenu;
+        [SerializeField] private string endGameSceneName = "MainMenu";
         [SerializeField] private TMP_Text Result;
 
-        private void OnEnable()
+        private void Awake()
         {
-            GameEvents.Winner += HandleWinner;
+            Result.text = GameData.EndgameMessage;
         }
 
-        private void OnDisable()
-        {
-            GameEvents.Winner -= HandleWinner;
-        }
 
         private void HandleWinner(string text)
         {
+            Debug.Log(text);
             Result.text = text;
         }
         
         public void Restart()
         {
-            SceneManager.LoadScene(MainMenu.name);
+            SceneManager.LoadScene(endGameSceneName);
         }
     }
 }

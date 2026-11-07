@@ -4,11 +4,11 @@ using UnityEngine.SceneManagement;
 
 public class MenuManager : MonoBehaviour
 {
-    [SerializeField] private SceneAsset quickGameScene;
+    [SerializeField] private string quickGameSceneName = "QuickGame";
 
     public void QuickGame()
     {
-        SceneManager.LoadScene(quickGameScene.name);
+        SceneManager.LoadScene(quickGameSceneName);
     }
 
     public void Exit()

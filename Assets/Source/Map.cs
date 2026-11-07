@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
 using UnityEngine;
+using UnityEngine.Analytics;
 
 namespace YANG
 {
@@ -156,7 +157,7 @@ namespace YANG
             return Highlights;
         }
 
-        public List<Position> AppliablePositions(IReadOnlyList<int> ids, int playerId)
+        public List<Position> AppliablePositions(ActionOnMap action,IReadOnlyList<int> ids, int playerId)
         {
             List<Position> positions = new List<Position>();
             foreach (var o in Objects)
@@ -164,6 +165,11 @@ namespace YANG
                 if (o is Ship ship && ids.Contains(ship.ShipId))
                 {
                     if (o.PlayerId != playerId)
+                    {
+                        continue;
+                    }
+
+                    if (action == ActionOnMap.Move && !ship.CanMove)
                     {
                         continue;
                     }
@@ -210,11 +216,11 @@ namespace YANG
         {
             if (!ValidateAttack(start, end, playerId, out var ship, out var enemy)) return false;
             enemy.Health -= ship.Damage;
-            if (enemy.Health < 0)
+            if (enemy.Health <= 0)
             {
-                Objects.Remove(enemy);
                 if (enemy is Base)
                 {
+                    Debug.Log("Zabity gosc");
                     GameEvents.DeadPlayer?.Invoke(enemy.PlayerId);
                     return true;
                 }
@@ -228,14 +234,16 @@ namespace YANG
 
         private void CheckPlayerDeath(int playerId)
         {
+            Debug.Log("Test Konca");
             foreach (var obj in Objects )
             {
                 if (obj is Ship ship && ship.PlayerId == playerId)
                 {
-                   return; 
+                    return; 
                 }
                 
             }
+            Debug.LogWarning("Zabity");
             GameEvents.DeadPlayer?.Invoke(playerId);
         }
 

@@ -6,6 +6,7 @@ namespace YANG
     {
         [SerializeField] private MapUI map;
         [SerializeField] private Game game;
+        public CardsDatabase cardsDatabase;
 
         public void PlayCard(CardData card, int playerId)
         {
@@ -28,6 +29,30 @@ namespace YANG
         public void Reset()
         {
             map.Reset();
+        }
+        
+        public void Move()
+        {
+            Debug.Log("Move!");
+            var card = cardsDatabase.GetCard(0);
+            if (card == null || card is not CardOnMapData m)
+            {
+                Debug.LogError($"Card {card} not found");
+                return;
+            }
+            map.Apply(m.Action, m.IdWorksOn, 0);     
+        }
+        
+        public void Attack()
+        {
+            Debug.Log("Attack!");
+            var card = cardsDatabase.GetCard(1);
+            if (card == null || card is not CardOnMapData m)
+            {
+                Debug.LogError($"Card {card} not found");
+                return;
+            }
+            map.Apply(m.Action, m.IdWorksOn, 0);     
         }
     }
 }
