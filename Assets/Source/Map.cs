@@ -15,6 +15,19 @@ namespace YANG
         {
             _board = new Board(rows, cols);
         }
+        
+      ///part for invoking funcitons on map
+        Vector2Int TargetCoords1, TargetCoords2;
+
+        public void Apply(ActionOnMap action)
+        {
+            switch (action)
+            {
+                case ActionOnMap.Move:
+                    Move(TargetCoords1, TargetCoords2);
+                    break;
+            }
+        }
 
         public bool TryGetObject(Position position, out Object obj)
         {
