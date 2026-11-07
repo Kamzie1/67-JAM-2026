@@ -38,7 +38,8 @@ namespace YANG
 
         private void BeginTurn()
         {
-            CurrentPlayer.StartTurn(handSize);
+            executor.Reset();
+            CurrentPlayer.StartTurn(CurrentPlayer.handSize);
             Phase = TurnPhase.PlayerAction;
             TurnStarted?.Invoke(CurrentPlayerId);
         }

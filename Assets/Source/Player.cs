@@ -10,8 +10,8 @@ namespace YANG
         protected readonly List<CardData> handDeck = new();
         protected readonly List<CardData> discardedDeck = new();
         private readonly Random rng = new();
+        public int handSize { get; }
 
-        private int handSize;
         public int MaxActionPoints { get; private set; }
         public int CurrentActionPoints { get; private set; }
         public int ActionPointsRegen { get; private set; }
@@ -50,14 +50,14 @@ namespace YANG
         {
             return card != null
                 && handDeck.Contains(card)
-                && card.ActionCost <= CurrentActionPoints;
+                && card.Cost <= CurrentActionPoints;
         }
 
         public bool PayAndDiscard(CardData card)
         {
             if (!CanPlay(card)) return false;
 
-            CurrentActionPoints -= card.ActionCost;
+            CurrentActionPoints -= card.Cost;
             handDeck.Remove(card);
             discardedDeck.Add(card);
             Changed?.Invoke();

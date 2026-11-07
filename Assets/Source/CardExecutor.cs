@@ -12,7 +12,7 @@ namespace YANG
             switch (card)
             {
                 case CardOnMapData m:
-                    map.Apply(m.Action, m.IdWorksOn);
+                    map.Apply(m.Action, m.IdWorksOn, playerId);
                     break;
 
                 case CardOnPlayerData p:
@@ -23,6 +23,11 @@ namespace YANG
                     Debug.LogError($"Unknown card type: {card?.GetType().Name}");
                     break;
             }
+        }
+
+        public void Reset()
+        {
+            map.Reset();
         }
     }
 }

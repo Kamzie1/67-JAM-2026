@@ -6,9 +6,9 @@ namespace YANG
 {
     public class TileHighlighter : MonoBehaviour
     {
-        [Header("Tilemaps")] public Tilemap highlightMap;
+        public Tilemap highlightMap;
 
-        [Header("Tiles")] public TileBase highlightTile;
+        public TileBase highlightTile;
 
         public void HighlightTiles(List<Vector3Int> tiles)
         {

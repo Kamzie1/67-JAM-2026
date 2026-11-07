@@ -7,15 +7,18 @@ namespace YANG
 {
     public class Map
     {
-        public List<Position> Highlights { get; private set; }
+        public List<Position> Highlights;
         private List<Object> _objects;
-        private Board _board;
+        private readonly Board _board;
+
+        public int Rows => _board.Rows;
+        public int Cols => _board.Cols;
 
         public Map(int rows, int cols)
         {
             _board = new Board(rows, cols);
         }
-        
+
         public Map(int rows, int cols, List<Object> objects)
         {
             _board = new Board(rows, cols);
@@ -33,9 +36,6 @@ namespace YANG
 
             return false;
         }
-        
-        public int Rows  => _board.Rows;
-        public int Cols => _board.Cols;
 
         public List<Position> AttackablePositions(Position start)
         {
@@ -121,17 +121,17 @@ namespace YANG
 
                     visited[n.X][n.Y] = true;
                     queue.Enqueue(new ValueTuple<Position, int>(n, points));
-                    bool any_object = false;
+                    bool anyObject = false;
                     foreach (var o in _objects)
                     {
                         if (o.Position.Equals(n))
                         {
-                            any_object = true;
+                            anyObject = true;
                             break;
                         }
                     }
 
-                    if (!any_object)
+                    if (!anyObject)
                     {
                         positions.Add(n);
                     }
@@ -142,57 +142,93 @@ namespace YANG
             return Highlights;
         }
 
-        public List<Position> AppliablePositions(IReadOnlyList<int> ids)
+        public List<Position> AppliablePositions(IReadOnlyList<int> ids, int playerId)
         {
             List<Position> positions = new List<Position>();
             foreach (var o in _objects)
             {
                 if (ids.Contains(o.Id))
                 {
+                    if (o.PlayerId != playerId)
+                    {
+                        continue;
+                    }
                     positions.Add(o.Position);
                 }
             }
+
             return positions;
         }
 
-        public bool TryMove(Position start, Position end)
+        public bool TryMove(Position start, Position end, int playerId)
         {
-            if (!Highlights.Contains(start) || !Highlights.Contains(end) || start.Equals(end))
-            {
-                return false;
-            }
-            bool isObjectAtPosition = TryGetObject(start, out Object obj);
-            if (isObjectAtPosition || obj is not Ship ship)
-            {
-                return false;
-            }
+            if (!ValidateMove(start, end, playerId, out var ship)) return false;
             ship.Position = end;
             ship.CanMove = false;
             return true;
         }
 
-        
-        public bool TryAttack(Position start, Position end)
+        private bool ValidateMove(Position start, Position end, int playerId, out Ship ship)
         {
+            ship = null;
             if (!Highlights.Contains(start) || !Highlights.Contains(end) || start.Equals(end))
             {
                 return false;
             }
+
             bool isObjectAtPosition = TryGetObject(start, out Object obj);
-            if (isObjectAtPosition || obj is not Ship ship)
+            if (isObjectAtPosition || obj is not Ship getShip)
             {
                 return false;
             }
+
+            if (!getShip.CanMove || getShip.PlayerId != playerId)
+            {
+                return false;
+            }
+            ship = getShip;
+            return true;
+        }
+
+
+        public bool TryAttackKill(Position start, Position end, int playerId)
+        {
+            if (!ValidateAttack(start, end, playerId, out var ship, out var enemy)) return false;
+            enemy.Health -= ship.Damage;
+            if (enemy.Health < 0)
+            {
+                _objects.Remove(enemy);
+                return true;
+            }
+
+            return false;
+        }
+
+        private bool ValidateAttack(Position start, Position end, int playerId, out Ship ship, out ObjectWithHealth enemyObject)
+        {
+            ship = null;
+            enemyObject = null;
+            if (!Highlights.Contains(start) || !Highlights.Contains(end) || start.Equals(end))
+            {
+                return false;
+            }
+
+            bool isObjectAtPosition = TryGetObject(start, out Object obj);
+            if (isObjectAtPosition || obj.PlayerId != playerId || obj is not Ship getShip)
+            {
+                return false;
+            }
+
+            ship = getShip;
+
             bool isEnemyAtPosition = TryGetObject(end, out Object enemy);
-            if (isEnemyAtPosition || enemy is not Ship enemyShip)
+            if (isEnemyAtPosition || enemy.PlayerId == playerId || enemy is not ObjectWithHealth killableObject)
             {
                 return false;
             }
-            enemyShip.Health -= ship.Attack;
-            if (enemyShip.Health < 0)
-            {
-                _objects.Remove(enemyShip);
-            }
+
+            enemyObject = killableObject;
+
             return true;
         }
 
@@ -203,13 +239,32 @@ namespace YANG
                 return false;
             }
 
-            switch(action)
+            switch (action)
             {
                 default:
                     return false;
-            };
+            }
+
+            ;
 
             return true;
+        }
+
+        public void Reset(ShipsDatabase shipsDatabase)
+        {
+            foreach (var o in _objects)
+            {
+                if (o is Ship ship)
+                {
+                    int id = ship.Id;
+                    ShipData data = shipsDatabase.GetShip(id);
+                    
+                    ship.CanMove = true;
+                    ship.Damage = data.Damage;
+                    ship.Range = data.Range;
+                    ship.Movement =  data.Movement;
+                }
+            }
         }
     }
 }

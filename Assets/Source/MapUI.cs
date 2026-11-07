@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using Unity.VisualScripting;
+﻿using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Serialization;
 using UnityEngine.Tilemaps;
-using Debug = System.Diagnostics.Debug;
 
 namespace YANG
 {
@@ -17,42 +13,56 @@ namespace YANG
         private Position? _start;
         private Position? _end;
         private ActionOnMap? _action;
-        private List<ObjectUI> _objects;
-        private List<Object> starting_objects;
+        private List<Sprite> _sprites;
+        private List<Object> _startingObjects;
+        private readonly ShipsDatabase _shipsDatabase;
+        private int _player;
         
         private Camera _mainCamera;
 
-        void Start()
+        private void Start()
         {
             _mainCamera = Camera.main;
-            starting_objects= new List<Object>();
-            starting_objects.Add( new Ship(0, new Position(0,0)));
-            _map = new Map(15, 15, starting_objects);
+            _startingObjects= new List<Object> { new Ship(0, new Position(0,0), 0, 0) };
+            _map = new Map(15, 15, _startingObjects);
         }
 
-        void Awake()
+        private void Awake()
         {
-            foreach (var obj in starting_objects)
+            foreach (var obj in _startingObjects)
             {
-                _objects.Add(ObjectUI.Create(obj));
+                _sprites.Add(Sprite.Create(obj));
             }
         }
 
-        public void DestroyObject()
+        private void DestroySprite(Position position)
         {
-            
+            _map.TryGetObject(position, out var obj);
+            Sprite toDestroy = null;
+            foreach (var sprite in _sprites)
+            {
+                if (sprite.Id == obj.Id)
+                {
+                  toDestroy = sprite;
+                  break;
+                }
+            }
+            if (toDestroy is not null)
+            {
+                Destroy(toDestroy.gameObject);
+                _sprites.Remove(toDestroy);
+            }
         }
 
-        public void UpdateObject(Position end)
+        private void UpdateSprite(Position position)
         {
-            Object obj;
-            _map.TryGetObject(end, out obj);
-            foreach (var objectUI in _objects)
+            _map.TryGetObject(position, out var obj);
+            foreach (var sprite in _sprites)
             {
-                if (objectUI.Id == obj.Id)
+                if (sprite.Id == obj.Id)
                 {
-                    Vector3 new_pos = hexTilemap.GetCellCenterWorld(end.ToVector3());
-                    objectUI.transform.position = new_pos;
+                    Vector3 newPos = hexTilemap.GetCellCenterWorld(position.ToVector3());
+                    sprite.transform.position = newPos;
                 }
             }
         }
@@ -65,7 +75,7 @@ namespace YANG
             }
         }
 
-        public void HandleClick()
+        private void HandleClick()
         {
             if (_action == null)
             { 
@@ -77,69 +87,98 @@ namespace YANG
             }
         }
 
-        public void HandleScroll()
+        private void HandleScroll()
         {
             Vector3 target = _mainCamera.ScreenToWorldPoint(Input.mousePosition);
             _mainCamera.transform.LookAt(target); 
         }
 
-        public void HandleCardAction()
+        private void HandleCardAction()
         {
             Vector3 mousePos = _mainCamera.ScreenToWorldPoint(Input.mousePosition);
             mousePos.z = 0;
 
             Vector3Int cellPosition = hexTilemap.WorldToCell(mousePos);
             Position position = new Position(cellPosition);
+            if (!_map.Highlights.Contains(position))
+            {
+                ClearHighlights();
+            }
             if (_start == null)
             {
-                _start = position;
-                if (_action == ActionOnMap.Move)
-                {
-                    highlighter.HighlightTiles(_map.MovablePositions((Position)_start).ConvertAll(Position.PositionToVector3));
-                }
-                else if(_action == ActionOnMap.Attack)
-                {
-                    highlighter.HighlightTiles(_map.AttackablePositions((Position)_start).ConvertAll(Position.PositionToVector3));
-                }
-                else
-                {
-                    _map.TryApply((ActionOnMap)_action!, (Position)_start);
-                    highlighter.ClearHighlights();
-                    _start = null;
-                    _action = null;
-                }
+                HandleFirstClick(position);
             }
             else
             {
-                _end = position;
-                if (_action == ActionOnMap.Move)
-                {
-                    bool success = _map.TryMove((Position)_start, (Position)_end);
-                    if (success)
-                    {
-                        UpdateObject((Position) _end);
-                    }
-                }
-                else if(_action == ActionOnMap.Attack)
-                {
-                    bool success = _map.TryAttack((Position)_start, (Position)_end);
-                }
-                highlighter.ClearHighlights();
-                _start = null;
-                _end = null;
-                _action = null;
+                HandleSecondClick(position);
             }
         }
 
-        public void Highlight(IReadOnlyList<int> ids)
+        private void HandleFirstClick(Position position)
         {
-            highlighter.HighlightTiles(_map.AppliablePositions(ids).ConvertAll(Position.PositionToVector3));
+            _start = position;
+            if (_action == ActionOnMap.Move)
+            {
+                highlighter.HighlightTiles(_map.MovablePositions((Position)_start).ConvertAll(Position.PositionToVector3));
+            }
+            else if(_action == ActionOnMap.Attack)
+            {
+                highlighter.HighlightTiles(_map.AttackablePositions((Position)_start).ConvertAll(Position.PositionToVector3));
+            }
+            else
+            {
+                _map.TryApply((ActionOnMap)_action, (Position)_start);
+                ClearHighlights();
+            }
         }
-        
-        public void Apply(ActionOnMap action, IReadOnlyList<int> ids)
+        private void HandleSecondClick(Position position)
+        {
+            _end = position;
+            if (_action == ActionOnMap.Move)
+            {
+                Move();
+            }
+            else if(_action == ActionOnMap.Attack)
+            {
+                Attack();
+            }
+            ClearHighlights();
+        }
+
+        private void ClearHighlights()
+        {
+            highlighter.ClearHighlights();
+            _start = null;
+            _end = null;
+            _action = null;
+        }
+
+        private void Move()
+        {
+            if (_map.TryMove((Position)_start, (Position)_end, _player))
+            {
+                UpdateSprite((Position) _end);
+            }
+        }
+
+        private void Attack()
+        {
+            if (_map.TryAttackKill((Position)_start, (Position)_end, _player))
+            {
+                DestroySprite((Position)_end);
+            }
+        }
+
+        public void Apply(ActionOnMap action, IReadOnlyList<int> ids, int playerId)
         {
             _action = action;
-            Highlight(ids);
+            _player = playerId;
+            highlighter.HighlightTiles(_map.AppliablePositions(ids, _player).ConvertAll(Position.PositionToVector3));
+        }
+
+        public void Reset()
+        {
+            _map.Reset(_shipsDatabase);
         }
 
     }
