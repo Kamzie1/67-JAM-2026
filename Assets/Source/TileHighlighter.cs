@@ -6,17 +6,18 @@ namespace YANG
 {
     public class TileHighlighter : MonoBehaviour
     {
-        [Header("Tilemaps")] public Tilemap highlightMap;
+        public Tilemap highlightMap;
 
-        [Header("Tiles")] public TileBase highlightTile;
+        public TileBase highlightTile;
 
-        public void HighlightTiles(List<Vector3Int> tiles)
+        public void HighlightTiles(List<Position> tiles, int rows, int cols)
         {
             highlightMap.ClearAllTiles();
 
-            foreach (Vector3Int hexCoords in tiles)
+            foreach (var hexCoords in tiles)
             {
-                highlightMap.SetTile(hexCoords, highlightTile);
+                Vector3Int position = new Vector3Int(hexCoords.Y-cols/2, rows/2 - hexCoords.X, 0);
+                highlightMap.SetTile(position, highlightTile);
             }
         }
 
