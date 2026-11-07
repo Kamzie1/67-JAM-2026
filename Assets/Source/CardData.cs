@@ -9,9 +9,11 @@ namespace YANG
         [SerializeField] private int id;
         [SerializeField] private string cardName;
         [SerializeField] private string description;
+        [SerializeField] private int cost;
 
         public int Id => id;
         public string CardName => cardName;
         public string Description => description;
+        public int Cost => cost;
     }
 }
