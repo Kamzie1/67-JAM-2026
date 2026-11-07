@@ -5,13 +5,13 @@ namespace YANG
 {
     public class Player
     {
-        private readonly List<CardData> originalDeck;
-        private readonly List<CardData> currentDeck;
-        private readonly List<CardData> handDeck = new();
-        private readonly List<CardData> discardedDeck = new();
+        protected readonly List<CardData> originalDeck;
+        protected readonly List<CardData> currentDeck;
+        protected readonly List<CardData> handDeck = new();
+        protected readonly List<CardData> discardedDeck = new();
         private readonly Random rng = new();
+        public int handSize { get; }
 
-        private int handSize;
         public int MaxActionPoints { get; private set; }
         public int CurrentActionPoints { get; private set; }
         public int ActionPointsRegen { get; private set; }
@@ -34,7 +34,7 @@ namespace YANG
             handSize = 5;
         }
 
-        public void StartTurn(int cardsToDraw)
+        public virtual void StartTurn(int cardsToDraw)
         {
             CurrentActionPoints = Math.Min(MaxActionPoints, CurrentActionPoints + ActionPointsRegen);
             DrawCard(cardsToDraw);
@@ -50,14 +50,14 @@ namespace YANG
         {
             return card != null
                 && handDeck.Contains(card)
-                && card.ActionCost <= CurrentActionPoints;
+                && card.Cost <= CurrentActionPoints;
         }
 
         public bool PayAndDiscard(CardData card)
         {
             if (!CanPlay(card)) return false;
 
-            CurrentActionPoints -= card.ActionCost;
+            CurrentActionPoints -= card.Cost;
             handDeck.Remove(card);
             discardedDeck.Add(card);
             Changed?.Invoke();
@@ -79,6 +79,10 @@ namespace YANG
                 }
 
                 int last = currentDeck.Count - 1;
+                if (last < 0)
+                {
+                    return;
+                }
                 handDeck.Add(currentDeck[last]);
                 currentDeck.RemoveAt(last);
             }

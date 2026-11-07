@@ -13,6 +13,8 @@ namespace YANG
 
     public enum TurnPhase
     {
+        StartTurn,
+        EndTurn,
         NotStarted,
         PlayerAction,
         Resolving,
