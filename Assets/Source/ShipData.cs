@@ -2,6 +2,7 @@
 
 namespace YANG
 {
+    [CreateAssetMenu(fileName = "ShipsData", menuName = "Scriptable Objects/ShipsData")]
     public class ShipData : ScriptableObject
     {
         [SerializeField] private int id;

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.Tilemaps;
 
 namespace YANG
@@ -7,32 +8,37 @@ namespace YANG
     public class MapUI : MonoBehaviour
     {
         public Tilemap hexTilemap;
-        public TileHighlighter highlighter; 
+        public TileHighlighter highlighter;
+        public ShipsDatabase shipsDatabase;
         
         private Map _map;
         private Position? _start;
         private Position? _end;
         private ActionOnMap? _action;
         private List<Sprite> _sprites;
-        private List<Object> _startingObjects;
-        private readonly ShipsDatabase _shipsDatabase;
         private int _player;
         
         private Camera _mainCamera;
 
-        private void Start()
-        {
-            _mainCamera = Camera.main;
-            _startingObjects= new List<Object> { new Ship(0, new Position(0,0), 0, 0) };
-            _map = new Map(15, 15, _startingObjects);
-        }
-
         private void Awake()
         {
-            foreach (var obj in _startingObjects)
+            _mainCamera = Camera.main;
+            _map = new Map(15, 15);
+            CreateFleet();
+            foreach (var obj in _map.Objects)
             {
                 _sprites.Add(Sprite.Create(obj));
             }
+        }
+
+        private void CreateFleet()
+        {
+            int i = 0;
+           _map.Spawn(new Base(i++, new Position(7, 0), 0)); 
+           _map.Spawn(new Base(i++, new Position(7, 14), 1)); 
+           
+           _map.Spawn(new Ship(i++, new Position(7, 1), 0, 0));
+           _map.Spawn(new Ship(i++, new Position(7, 13), 1, 0));
         }
 
         private void DestroySprite(Position position)
@@ -178,7 +184,7 @@ namespace YANG
 
         public void Reset()
         {
-            _map.Reset(_shipsDatabase);
+            _map.Reset(shipsDatabase);
         }
 
     }

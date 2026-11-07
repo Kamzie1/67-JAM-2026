@@ -7,8 +7,8 @@ namespace YANG
 {
     public class Map
     {
-        public List<Position> Highlights;
-        private List<Object> _objects;
+        public List<Position> Highlights { get; private set; } 
+        public List<Object> Objects { get; }
         private readonly Board _board;
 
         public int Rows => _board.Rows;
@@ -17,18 +17,18 @@ namespace YANG
         public Map(int rows, int cols)
         {
             _board = new Board(rows, cols);
+            Objects = new List<Object>();
         }
 
-        public Map(int rows, int cols, List<Object> objects)
+        public void Spawn(Object o)
         {
-            _board = new Board(rows, cols);
-            _objects = objects;
+            Objects.Add(o);
         }
 
         public bool TryGetObject(Position position, out Object obj)
         {
             obj = null;
-            foreach (var o in _objects.Where(o => o.Position.Equals(position)))
+            foreach (var o in Objects.Where(o => o.Position.Equals(position)))
             {
                 obj = o;
                 return true;
@@ -72,7 +72,7 @@ namespace YANG
 
                     visited[n.X][n.Y] = true;
                     queue.Enqueue(new ValueTuple<Position, int>(n, points));
-                    foreach (var enemy in _objects)
+                    foreach (var enemy in Objects)
                     {
                         if (enemy.PlayerId != ship.PlayerId && enemy.Position.Equals(n))
                         {
@@ -122,7 +122,7 @@ namespace YANG
                     visited[n.X][n.Y] = true;
                     queue.Enqueue(new ValueTuple<Position, int>(n, points));
                     bool anyObject = false;
-                    foreach (var o in _objects)
+                    foreach (var o in Objects)
                     {
                         if (o.Position.Equals(n))
                         {
@@ -145,7 +145,7 @@ namespace YANG
         public List<Position> AppliablePositions(IReadOnlyList<int> ids, int playerId)
         {
             List<Position> positions = new List<Position>();
-            foreach (var o in _objects)
+            foreach (var o in Objects)
             {
                 if (ids.Contains(o.Id))
                 {
@@ -197,11 +197,31 @@ namespace YANG
             enemy.Health -= ship.Damage;
             if (enemy.Health < 0)
             {
-                _objects.Remove(enemy);
+                Objects.Remove(enemy);
+                if (enemy is Base)
+                {
+                    GameEvents.DeadPlayer?.Invoke(enemy.PlayerId);
+                    return true;
+                }
+                CheckPlayerDeath(enemy.Id);
                 return true;
             }
 
+
             return false;
+        }
+
+        private void CheckPlayerDeath(int playerId)
+        {
+            foreach (var obj in Objects )
+            {
+                if (obj is Ship ship && ship.PlayerId == playerId)
+                {
+                   return; 
+                }
+                
+            }
+            GameEvents.DeadPlayer?.Invoke(playerId);
         }
 
         private bool ValidateAttack(Position start, Position end, int playerId, out Ship ship, out ObjectWithHealth enemyObject)
@@ -252,7 +272,7 @@ namespace YANG
 
         public void Reset(ShipsDatabase shipsDatabase)
         {
-            foreach (var o in _objects)
+            foreach (var o in Objects)
             {
                 if (o is Ship ship)
                 {
