@@ -49,12 +49,15 @@ namespace YANG
 
         private void HandlePlayerDeath(int playerId)
         {
-            int winner = playerCount - playerId;
-            if (playerCount == 1)
+            if (playerId == 0)
             {
-                GameEvents.Winner?.Invoke(winner);
-                SceneManager.LoadScene(EndGameScene.name);
+                GameEvents.Winner?.Invoke("Przegrałeś!");
             }
+            else
+            {
+                GameEvents.Winner?.Invoke("Wygrałeś!");
+            }
+            SceneManager.LoadScene(EndGameScene.name);
         }
     }
 }

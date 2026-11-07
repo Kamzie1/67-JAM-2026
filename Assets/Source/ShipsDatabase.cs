@@ -7,7 +7,7 @@ namespace YANG
     [CreateAssetMenu(fileName = "ShipsDatabase", menuName = "Scriptable Objects/ShipsDatabase")]
     public class ShipsDatabase : ScriptableObject
     {
-        [SerializeField] private readonly List<ShipData> _ships = new();
+        [SerializeField] private List<ShipData> ships = new();
         private Dictionary<int, ShipData> _lookup;
 
         public ShipData GetShip(int id)
@@ -19,9 +19,10 @@ namespace YANG
         private Dictionary<int, ShipData> BuildLookup()
         {
             var dict = new Dictionary<int, ShipData>();
-            foreach (var s in _ships.Where(s => !dict.TryAdd(s.Id, s)))
+            foreach (var s in ships)
             {
-                Debug.LogError($"Duplicate Ship id {s.Id} ({s.name})", s);
+                if (!dict.TryAdd(s.Id, s))
+                    Debug.LogError($"Duplicate card id {s.Id} ({s.name})", s);
             }
             return dict;
         }

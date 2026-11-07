@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.Serialization;
 using UnityEngine.Tilemaps;
 
@@ -10,6 +12,10 @@ namespace YANG
         public Tilemap hexTilemap;
         public TileHighlighter highlighter;
         public ShipsDatabase shipsDatabase;
+        public Camera mainCamera;
+        public TMP_Text Stats;
+
+        private Vector3 origin;
         
         private Map _map;
         private Position? _start;
@@ -17,18 +23,22 @@ namespace YANG
         private ActionOnMap? _action;
         private List<Sprite> _sprites;
         private int _player;
-        
-        private Camera _mainCamera;
 
         private void Awake()
         {
-            _mainCamera = Camera.main;
+            mainCamera = Camera.main;
             _map = new Map(15, 15);
             CreateFleet();
+            _sprites = new List<Sprite>();
             foreach (var obj in _map.Objects)
             {
                 _sprites.Add(Sprite.Create(obj));
             }
+        }
+        
+        void Start()
+        {
+            origin = transform.position;
         }
         
         private void CreateFleet()
@@ -43,7 +53,6 @@ namespace YANG
         private void SpawnBase(Position position, int playerId)
         {
             _map.Spawn(new Base(_map.Objects.Count, position, playerId)); 
-            
         }
 
         private void SpawnShip(Position position, int playerId, int shipId)
@@ -86,17 +95,37 @@ namespace YANG
         
         void Update()
         {
-            if (Input.GetMouseButtonDown(0))
+            if (Mouse.current.leftButton.wasPressedThisFrame)
             {
                 HandleClick();
             }
+            else if (Mouse.current.middleButton.wasPressedThisFrame)
+            {
+               SetOrigin(); 
+            }
+            
+            if (Mouse.current.middleButton.isPressed || Mouse.current.leftButton.isPressed)
+            {
+                MoveByOffset();
+            }
         }
-
+        
+        void SetOrigin()
+        {
+            origin = mainCamera.ScreenToWorldPoint(Mouse.current.position.ReadValue());
+        }
+        private void MoveByOffset()
+        {
+            Vector3 currentMousePos = mainCamera.ScreenToWorldPoint(Mouse.current.position.ReadValue());
+            Vector3 difference = origin - currentMousePos;
+        
+            mainCamera.transform.position += difference;
+        }        
         private void HandleClick()
         {
             if (_action == null)
             { 
-                HandleScroll(); 
+                SetOrigin(); 
             }
             else
             {
@@ -104,15 +133,43 @@ namespace YANG
             }
         }
 
-        private void HandleScroll()
+        private void HandleLeftClick()
         {
-            Vector3 target = _mainCamera.ScreenToWorldPoint(Input.mousePosition);
-            _mainCamera.transform.LookAt(target); 
+            Vector3 mousePos = mainCamera.ScreenToWorldPoint(Mouse.current.position.ReadValue());
+            mousePos.z = 0;
+
+            Vector3Int cellPosition = hexTilemap.WorldToCell(mousePos);
+            Position position = new Position(cellPosition);
+            if (_map.TryGetObject(position, out var obj))
+            {
+                Stats.text = ToText(obj);
+            }
+            else
+            {
+                Stats.text = "";
+            }
+            
+        }
+
+        private string ToText(Object obj)
+        {
+            if (obj is Base baza)
+            {
+                return $@"Base: {baza.PlayerId}\nHealth: {baza.Health}";
+            }
+            else if (obj is Ship ship)
+            {
+                int id = ship.Id;
+                ShipData data = shipsDatabase.GetShip(id);
+                return $@"\t{data.name}\n{data.Description}\n-------\nHealth: {data.Health}\nDamage: {data.Damage}\nMovement: {data.Movement}\nRange: {data.Range}";
+            }
+
+            return "";
         }
 
         private void HandleCardAction()
         {
-            Vector3 mousePos = _mainCamera.ScreenToWorldPoint(Input.mousePosition);
+            Vector3 mousePos = mainCamera.ScreenToWorldPoint(Mouse.current.position.ReadValue());
             mousePos.z = 0;
 
             Vector3Int cellPosition = hexTilemap.WorldToCell(mousePos);

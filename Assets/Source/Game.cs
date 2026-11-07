@@ -14,6 +14,7 @@ namespace YANG
         [SerializeField] private int cardsToDraw = 1;
         [SerializeField] private bool autoEndTurnAtZeroPoints = false;
         [SerializeField] private List<CardData> startingDeck = new();
+        private int playerId = 0;
 
         private readonly List<Player> players = new();
 
@@ -30,7 +31,14 @@ namespace YANG
         {
             players.Clear();
             for (int i = 0; i < playerCount; i++)
-                players.Add(new Player(startingDeck, maxActionPoints, startingRegen));
+                if (i == playerId)
+                {
+                    players.Add(new Player(startingDeck, maxActionPoints, startingRegen));
+                }
+                else
+                {
+                    players.Add(new BasicAI(startingDeck, maxActionPoints, startingRegen));
+                }
 
             CurrentPlayerId = 0;
             BeginTurn();

@@ -20,9 +20,9 @@ namespace YANG
             GameEvents.Winner -= HandleWinner;
         }
 
-        private void HandleWinner(int player)
+        private void HandleWinner(string text)
         {
-            Result.text = $"Gracz {player} wygrał!";
+            Result.text = text;
         }
         
         public void Restart()
