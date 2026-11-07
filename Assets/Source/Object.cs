@@ -4,6 +4,7 @@
     {
         public int Id{get;}
         public Position Position{get;set;}
+        public int PlayerId{get;set;}
         
         public Object(int id, Position position)
         {

@@ -67,5 +67,10 @@ namespace YANG
         {
            return new Vector3Int(p.X, p.Y, 0); 
         }
+
+        public Vector3Int ToVector3()
+        {
+            return new Vector3Int(X, Y, 0);
+        }
     }
 }

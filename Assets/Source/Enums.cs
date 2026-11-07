@@ -2,7 +2,8 @@ namespace YANG
 {
     public enum ActionOnMap
     { 
-        Move
+        Move,
+        Attack
     }
 
     public enum ActionOnPlayer 
