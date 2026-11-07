@@ -16,17 +16,10 @@ namespace YANG
             _board = new Board(rows, cols);
         }
         
-      ///part for invoking funcitons on map
-        Vector2Int TargetCoords1, TargetCoords2;
-
-        public void Apply(ActionOnMap action)
+        public Map(int rows, int cols, List<Object> objects)
         {
-            switch (action)
-            {
-                case ActionOnMap.Move:
-                    Move(TargetCoords1, TargetCoords2);
-                    break;
-            }
+            _board = new Board(rows, cols);
+            _objects = objects;
         }
 
         public bool TryGetObject(Position position, out Object obj)
@@ -43,6 +36,55 @@ namespace YANG
         
         public int Rows  => _board.Rows;
         public int Cols => _board.Cols;
+
+        public List<Position> AttackablePositions(Position start)
+        {
+            List<Position> positions = new List<Position>();
+            bool isObjectAtPosition = TryGetObject(start, out Object obj);
+            if (isObjectAtPosition || obj is not Ship ship)
+            {
+                Highlights = positions;
+                return Highlights;
+            }
+
+            var queue = new Queue<ValueTuple<Position, int>>();
+            bool[][] visited = new bool[Rows][];
+            for (int index = 0; index < Rows; index++)
+            {
+                visited[index] = new bool[Cols];
+            }
+
+            positions.Add(start);
+            visited[start.X][start.Y] = true;
+            queue.Enqueue(new ValueTuple<Position, int>(start, ship.Range));
+            while (queue.Count > 0)
+            {
+                var tuple = queue.Dequeue();
+                Position position = tuple.Item1;
+                int points = tuple.Item2;
+                points--;
+                foreach (Position n in position.Neighbours())
+                {
+                    if (!n.IsValid(Rows, Cols) || !visited[n.X][n.Y] || points < 0)
+                    {
+                        continue;
+                    }
+
+                    visited[n.X][n.Y] = true;
+                    queue.Enqueue(new ValueTuple<Position, int>(n, points));
+                    foreach (var enemy in _objects)
+                    {
+                        if (enemy.PlayerId != ship.PlayerId && enemy.Position.Equals(n))
+                        {
+                            positions.Add(n);
+                        }
+                    }
+                }
+            }
+
+            Highlights = positions;
+            return Highlights;
+        }
 
         public List<Position> MovablePositions(Position start)
         {
@@ -79,7 +121,20 @@ namespace YANG
 
                     visited[n.X][n.Y] = true;
                     queue.Enqueue(new ValueTuple<Position, int>(n, points));
-                    positions.Add(n);
+                    bool any_object = false;
+                    foreach (var o in _objects)
+                    {
+                        if (o.Position.Equals(n))
+                        {
+                            any_object = true;
+                            break;
+                        }
+                    }
+
+                    if (!any_object)
+                    {
+                        positions.Add(n);
+                    }
                 }
             }
 
@@ -87,12 +142,15 @@ namespace YANG
             return Highlights;
         }
 
-        public List<Position> AppliablePositions(Func<Object, bool> validateObject)
+        public List<Position> AppliablePositions(List<int> ids)
         {
             List<Position> positions = new List<Position>();
-            foreach (var o in _objects.Where(o => validateObject(o)))
+            foreach (var o in _objects)
             {
-                positions.Add(o.Position);
+                if (ids.Contains(o.Id))
+                {
+                    positions.Add(o.Position);
+                }
             }
             return positions;
         }
@@ -112,6 +170,46 @@ namespace YANG
             ship.CanMove = false;
             return true;
         }
+
         
+        public bool TryAttack(Position start, Position end)
+        {
+            if (!Highlights.Contains(start) || !Highlights.Contains(end) || start.Equals(end))
+            {
+                return false;
+            }
+            bool isObjectAtPosition = TryGetObject(start, out Object obj);
+            if (isObjectAtPosition || obj is not Ship ship)
+            {
+                return false;
+            }
+            bool isEnemyAtPosition = TryGetObject(end, out Object enemy);
+            if (isEnemyAtPosition || enemy is not Ship enemyShip)
+            {
+                return false;
+            }
+            enemyShip.Health -= ship.Attack;
+            if (enemyShip.Health < 0)
+            {
+                _objects.Remove(enemyShip);
+            }
+            return true;
+        }
+
+        public bool TryApply(ActionOnMap action, Position position)
+        {
+            if (!Highlights.Contains(position))
+            {
+                return false;
+            }
+
+            switch(action)
+            {
+                default:
+                    return false;
+            };
+
+            return true;
+        }
     }
 }

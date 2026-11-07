@@ -4,7 +4,7 @@ namespace YANG
 {
     public class CardExecutor : MonoBehaviour
     {
-        [SerializeField] private Map map;
+        [SerializeField] private MapUI map;
         [SerializeField] private Game game;
 
         public void PlayCard(CardData card, int playerId)
