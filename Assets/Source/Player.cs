@@ -79,6 +79,10 @@ namespace YANG
                 }
 
                 int last = currentDeck.Count - 1;
+                if (last < 0)
+                {
+                    return;
+                }
                 handDeck.Add(currentDeck[last]);
                 currentDeck.RemoveAt(last);
             }

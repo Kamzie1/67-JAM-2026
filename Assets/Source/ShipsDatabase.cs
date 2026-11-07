@@ -13,7 +13,7 @@ namespace YANG
         public ShipData GetShip(int id)
         {
             _lookup ??= BuildLookup();
-            return _lookup.GetValueOrDefault(id);
+            return _lookup.TryGetValue(id, out var ship) ? ship : null;
         }
 
         private Dictionary<int, ShipData> BuildLookup()

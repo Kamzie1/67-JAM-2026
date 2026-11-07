@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
+using UnityEngine;
 
 namespace YANG
 {
@@ -18,6 +19,7 @@ namespace YANG
         {
             _board = new Board(rows, cols);
             Objects = new List<Object>();
+            Highlights = new List<Position>();
         }
         
 
@@ -42,7 +44,7 @@ namespace YANG
         {
             List<Position> positions = new List<Position>();
             bool isObjectAtPosition = TryGetObject(start, out Object obj);
-            if (isObjectAtPosition || obj is not Ship ship)
+            if (!isObjectAtPosition || obj is not Ship ship)
             {
                 Highlights = positions;
                 return Highlights;
@@ -66,7 +68,7 @@ namespace YANG
                 points--;
                 foreach (Position n in position.Neighbours())
                 {
-                    if (!n.IsValid(Rows, Cols) || !visited[n.X][n.Y] || points < 0)
+                    if (!n.IsValid(Rows, Cols) || visited[n.X][n.Y] || points < 0)
                     {
                         continue;
                     }
@@ -91,8 +93,9 @@ namespace YANG
         {
             List<Position> positions = new List<Position>();
             bool isObjectAtPosition = TryGetObject(start, out Object obj);
-            if (isObjectAtPosition || obj is not Ship ship)
+            if (!isObjectAtPosition || obj is not Ship ship)
             {
+                Debug.Log("Casnt move");
                 Highlights = positions;
                 return Highlights;
             }
@@ -115,21 +118,31 @@ namespace YANG
                 points--;
                 foreach (Position n in position.Neighbours())
                 {
-                    if (!n.IsValid(Rows, Cols) || !visited[n.X][n.Y] || points < 0)
+                    if (!n.IsValid(Rows, Cols) || visited[n.X][n.Y] || points < 0)
                     {
                         continue;
                     }
 
                     visited[n.X][n.Y] = true;
-                    queue.Enqueue(new ValueTuple<Position, int>(n, points));
                     bool anyObject = false;
+                    bool enemy = false;
                     foreach (var o in Objects)
                     {
                         if (o.Position.Equals(n))
                         {
                             anyObject = true;
+                            if (o.PlayerId != ship.PlayerId)
+                            {
+                                enemy = true;
+                            }
                             break;
                         }
+                    }
+
+                    if (!enemy)
+                    {
+                        Debug.Log(n.X + "," + n.Y+"|"+points);
+                        queue.Enqueue(new ValueTuple<Position, int>(n, points));
                     }
 
                     if (!anyObject)
@@ -148,17 +161,18 @@ namespace YANG
             List<Position> positions = new List<Position>();
             foreach (var o in Objects)
             {
-                if (ids.Contains(o.Id))
+                if (o is Ship ship && ids.Contains(ship.ShipId))
                 {
                     if (o.PlayerId != playerId)
                     {
                         continue;
                     }
-                    positions.Add(o.Position);
+                    positions.Add(ship.Position);
                 }
             }
 
-            return positions;
+            Highlights = positions;
+            return Highlights;
         }
 
         public bool TryMove(Position start, Position end, int playerId)
@@ -178,7 +192,7 @@ namespace YANG
             }
 
             bool isObjectAtPosition = TryGetObject(start, out Object obj);
-            if (isObjectAtPosition || obj is not Ship getShip)
+            if (!isObjectAtPosition || obj is not Ship getShip)
             {
                 return false;
             }
@@ -235,7 +249,7 @@ namespace YANG
             }
 
             bool isObjectAtPosition = TryGetObject(start, out Object obj);
-            if (isObjectAtPosition || obj.PlayerId != playerId || obj is not Ship getShip)
+            if (!isObjectAtPosition || obj.PlayerId != playerId || obj is not Ship getShip)
             {
                 return false;
             }
@@ -243,7 +257,7 @@ namespace YANG
             ship = getShip;
 
             bool isEnemyAtPosition = TryGetObject(end, out Object enemy);
-            if (isEnemyAtPosition || enemy.PlayerId == playerId || enemy is not ObjectWithHealth killableObject)
+            if (!isEnemyAtPosition || enemy.PlayerId == playerId || enemy is not ObjectWithHealth killableObject)
             {
                 return false;
             }
@@ -277,7 +291,7 @@ namespace YANG
             {
                 if (o is Ship ship)
                 {
-                    int id = ship.Id;
+                    int id = ship.ShipId;
                     ShipData data = shipsDatabase.GetShip(id);
                     
                     ship.CanMove = true;

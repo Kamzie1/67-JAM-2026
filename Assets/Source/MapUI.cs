@@ -1,6 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.Serialization;
 using UnityEngine.Tilemaps;
@@ -88,7 +90,8 @@ namespace YANG
                 if (sprite.Id == obj.Id)
                 {
                     Vector3 newPos = hexTilemap.GetCellCenterWorld(position.ToVector3());
-                    sprite.transform.position = newPos;
+                    Vector3 vec = new Vector3(newPos.y - _map.Cols/2,_map.Rows/2  - newPos.x, 0);
+                    sprite.transform.position = vec;
                 }
             }
         }
@@ -104,7 +107,7 @@ namespace YANG
                SetOrigin(); 
             }
             
-            if (Mouse.current.middleButton.isPressed || Mouse.current.leftButton.isPressed)
+            if (Mouse.current.middleButton.isPressed)
             {
                 MoveByOffset();
             }
@@ -123,9 +126,14 @@ namespace YANG
         }        
         private void HandleClick()
         {
+            if (EventSystem.current.IsPointerOverGameObject())
+            {
+                return; 
+            }
+            Debug.Log(_action+ ", "+ _start + ", "+ _end);
             if (_action == null)
             { 
-                SetOrigin(); 
+                HandleLeftClick(); 
             }
             else
             {
@@ -139,16 +147,30 @@ namespace YANG
             mousePos.z = 0;
 
             Vector3Int cellPosition = hexTilemap.WorldToCell(mousePos);
-            Position position = new Position(cellPosition);
+            Position position = ToPosition(cellPosition);
+            if (!position.IsValid(_map.Rows, _map.Cols))
+            {
+                ClearHighlights();
+                return;
+            }
+            Debug.Log(position.X + " " + position.Y);
             if (_map.TryGetObject(position, out var obj))
             {
                 Stats.text = ToText(obj);
+                highlighter.HighlightTiles(new List<Position>(){ToPosition(cellPosition)}, _map.Rows, _map.Cols);
             }
             else
             {
+                Debug.Log("Clearing");
                 Stats.text = "";
+                ClearHighlights();
             }
             
+        }
+
+        private Position ToPosition(Vector3Int cellPosition)
+        {
+            return new Position(_map.Cols/2 -cellPosition.y, cellPosition.x + _map.Rows / 2);
         }
 
         private string ToText(Object obj)
@@ -157,10 +179,14 @@ namespace YANG
             {
                 return $@"Base: {baza.PlayerId}\nHealth: {baza.Health}";
             }
-            else if (obj is Ship ship)
+            if (obj is Ship ship)
             {
-                int id = ship.Id;
+                int id = ship.ShipId;
                 ShipData data = shipsDatabase.GetShip(id);
+                if (data is null)
+                {
+                    return "";
+                }
                 return $@"\t{data.name}\n{data.Description}\n-------\nHealth: {data.Health}\nDamage: {data.Damage}\nMovement: {data.Movement}\nRange: {data.Range}";
             }
 
@@ -169,16 +195,19 @@ namespace YANG
 
         private void HandleCardAction()
         {
+            Debug.Log(_action + ", " + _start + ", " + _end);
             Vector3 mousePos = mainCamera.ScreenToWorldPoint(Mouse.current.position.ReadValue());
             mousePos.z = 0;
 
             Vector3Int cellPosition = hexTilemap.WorldToCell(mousePos);
-            Position position = new Position(cellPosition);
-            if (!_map.Highlights.Contains(position))
+            Position position = ToPosition(cellPosition);
+            if (!_map.Highlights.Contains(position) || !position.IsValid(_map.Rows, _map.Cols))
             {
+                Debug.Log("Clear not in high");
                 ClearHighlights();
+                return;
             }
-            if (_start == null)
+            if (_start is null)
             {
                 HandleFirstClick(position);
             }
@@ -190,14 +219,16 @@ namespace YANG
 
         private void HandleFirstClick(Position position)
         {
+            Debug.Log(position.X + " " + position.Y);
             _start = position;
             if (_action == ActionOnMap.Move)
             {
-                highlighter.HighlightTiles(_map.MovablePositions((Position)_start).ConvertAll(Position.PositionToVector3));
+                Debug.Log("highlight moves");
+                highlighter.HighlightTiles(_map.MovablePositions((Position)_start), _map.Rows, _map.Cols);
             }
             else if(_action == ActionOnMap.Attack)
             {
-                highlighter.HighlightTiles(_map.AttackablePositions((Position)_start).ConvertAll(Position.PositionToVector3));
+                highlighter.HighlightTiles(_map.AttackablePositions((Position)_start), _map.Rows, _map.Cols);
             }
             else
             {
@@ -207,6 +238,7 @@ namespace YANG
         }
         private void HandleSecondClick(Position position)
         {
+            Debug.Log(position.X + " " + position.Y);
             _end = position;
             if (_action == ActionOnMap.Move)
             {
@@ -247,7 +279,7 @@ namespace YANG
         {
             _action = action;
             _player = playerId;
-            highlighter.HighlightTiles(_map.AppliablePositions(ids, _player).ConvertAll(Position.PositionToVector3));
+            highlighter.HighlightTiles(_map.AppliablePositions(ids, _player), _map.Rows, _map.Cols);
         }
 
         public void Reset()
