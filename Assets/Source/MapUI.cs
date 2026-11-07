@@ -30,15 +30,26 @@ namespace YANG
                 _sprites.Add(Sprite.Create(obj));
             }
         }
-
+        
         private void CreateFleet()
         {
-            int i = 0;
-           _map.Spawn(new Base(i++, new Position(7, 0), 0)); 
-           _map.Spawn(new Base(i++, new Position(7, 14), 1)); 
+           SpawnBase(new Position(7, 0), 0);
+           SpawnBase(new Position(7, 14), 1);
            
-           _map.Spawn(new Ship(i++, new Position(7, 1), 0, 0));
-           _map.Spawn(new Ship(i++, new Position(7, 13), 1, 0));
+           SpawnShip(new Position(7, 1), 0, 0);
+           SpawnShip(new Position(7, 13), 1, 0);
+        }
+
+        private void SpawnBase(Position position, int playerId)
+        {
+            _map.Spawn(new Base(_map.Objects.Count, position, playerId)); 
+            
+        }
+
+        private void SpawnShip(Position position, int playerId, int shipId)
+        {
+            ShipData data = shipsDatabase.GetShip(shipId);
+            _map.Spawn(new Ship(_map.Objects.Count, position, playerId, shipId, data.Health, data.Damage, data.Movement, data.Range));
         }
 
         private void DestroySprite(Position position)

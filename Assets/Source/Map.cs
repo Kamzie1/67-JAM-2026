@@ -19,6 +19,7 @@ namespace YANG
             _board = new Board(rows, cols);
             Objects = new List<Object>();
         }
+        
 
         public void Spawn(Object o)
         {

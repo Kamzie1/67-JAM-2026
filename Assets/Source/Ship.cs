@@ -14,5 +14,15 @@ namespace YANG
             ShipId = shipId;
             CanMove = true;
         }
+        
+        public Ship(int id, Position position, int playerId, int shipId, int health, int damage, int movement, int range) : base(id, position,  playerId)
+        {
+            Health = health;
+            Damage = damage;
+            Movement = movement;
+            Range = range;
+            ShipId = shipId;
+            CanMove = true;
+        }
     }
 }
