@@ -1269,6 +1269,8 @@ MonoBehaviour:
   mainCamera: {fileID: 519420031}
   Stats: {fileID: 663570155}
   entityPrefab: {fileID: 7042574091242481898, guid: eb4ea9216df5630438c3039383aa40b4, type: 3}
+  hitClip: {fileID: 8300000, guid: 0cf9ed3da0fcc8f469f2ec74cfcb1dc9, type: 3}
+  clickClip: {fileID: 8300000, guid: 268d77b8b33b7df43bf7ed9febd17b6a, type: 3}
 --- !u!4 &703170472
 Transform:
   m_ObjectHideFlags: 0
@@ -3803,6 +3805,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::YANG.TurnManager
   EndGameSceneName: EndGame
   playerCount: 2
+  clickClip: {fileID: 8300000, guid: 268d77b8b33b7df43bf7ed9febd17b6a, type: 3}
 --- !u!4 &1011008852
 Transform:
   m_ObjectHideFlags: 0

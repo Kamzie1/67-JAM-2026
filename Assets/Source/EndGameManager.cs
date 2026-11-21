@@ -10,6 +10,8 @@ namespace YANG
     {
         [SerializeField] private string endGameSceneName = "MainMenu";
         [SerializeField] private TMP_Text Result;
+        [SerializeField] private AudioClip clickClip;
+        
 
         private void Awake()
         {
@@ -25,6 +27,7 @@ namespace YANG
         
         public void Restart()
         {
+            AudioManager.Instance.PlaySound(clickClip, transform, 1f);
             SceneManager.LoadScene(endGameSceneName);
         }
     }

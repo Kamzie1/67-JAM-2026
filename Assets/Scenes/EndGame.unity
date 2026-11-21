@@ -773,6 +773,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::YANG.EndGameManager
   endGameSceneName: MainMenu
   Result: {fileID: 75870149}
+  clickClip: {fileID: 8300000, guid: 268d77b8b33b7df43bf7ed9febd17b6a, type: 3}
 --- !u!4 &1803803661
 Transform:
   m_ObjectHideFlags: 0

@@ -17,6 +17,8 @@ namespace YANG
         public Camera mainCamera;
         public StatDisplay Stats;
         public EntityView entityPrefab;
+        [SerializeField] private AudioClip hitClip;
+        [SerializeField] private AudioClip clickClip;
 
         private Vector3 origin;
         
@@ -89,6 +91,7 @@ namespace YANG
                 Destroy(toDestroy.gameObject);
                 _entities.Remove(toDestroy);
                 _map.Entities.Remove(obj);
+                _map.CheckPlayerDeath(toDestroy.PlayerId);
             }
         }
 
@@ -163,6 +166,7 @@ namespace YANG
             }
             if (_map.TryGetObject(position, out var obj))
             {
+                AudioManager.Instance.PlaySound(clickClip, transform, 1f);
                 Stats.ShowUnitStats(obj);
                 highlighter.HighlightTiles(new List<Position>(){ToPosition(cellPosition)}, _map.Rows, _map.Cols);
             }
@@ -204,6 +208,7 @@ namespace YANG
         private void HandleFirstClick(Position position)
         {
             _start = position;
+            AudioManager.Instance.PlaySound(clickClip, transform, 1f);
             if (_action == ActionOnMap.Move)
             {
                 highlighter.HighlightTiles(_map.MovablePositions((Position)_start), _map.Rows, _map.Cols);
@@ -250,9 +255,14 @@ namespace YANG
 
         private void Attack()
         {
-            if (_map.TryAttackKill((Position)_start, (Position)_end, _player))
+            var result = _map.TryAttackKill((Position)_start, (Position)_end, _player);
+            if (result != 0)
             {
-                DestroySprite((Position)_end);
+                AudioManager.Instance.PlaySound(hitClip, transform, 1f);
+                if (result == 2)
+                {
+                    DestroySprite((Position)_end);
+                }
             }
         }
 

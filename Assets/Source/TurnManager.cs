@@ -11,6 +11,7 @@ namespace YANG
         
         [SerializeField] private string EndGameSceneName="EndGame";
         [SerializeField] private int playerCount = 2;
+        [SerializeField] private AudioClip clickClip;
         public int CurrentPlayer { get; private set; }
         public TurnPhase Phase { get; private set; }
 
@@ -40,6 +41,7 @@ namespace YANG
         public void EndTurn()
         {
             if (Phase != TurnPhase.PlayerAction) return;
+            AudioManager.Instance.PlaySound(clickClip, transform, 1f);
             Phase = TurnPhase.EndTurn;
             TurnEnded?.Invoke(CurrentPlayer);
 
