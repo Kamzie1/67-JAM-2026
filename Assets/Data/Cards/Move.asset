@@ -16,5 +16,5 @@ MonoBehaviour:
   cardName: Move
   description: Allows you to move move any ship once.
   cost: 1
-  idWorksOn: 00000000i
+  idWorksOn: 0000000001000000i
   actionOnMap: 0

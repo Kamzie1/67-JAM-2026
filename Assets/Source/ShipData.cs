@@ -12,6 +12,7 @@ namespace YANG
         [SerializeField] private int range;
         [SerializeField] private int damage;
         [SerializeField] private int health;
+        [SerializeField] private Sprite unitSprite;
         [SerializeField] private int[] cardIds;
 
         public int Id => id;
@@ -21,6 +22,7 @@ namespace YANG
         public int Range => range;
         public int Damage => damage;
         public int Health => health;
+        public Sprite UnitSprite => unitSprite;
         public int[] CardIds => cardIds;
     }
 }

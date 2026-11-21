@@ -16,5 +16,5 @@ MonoBehaviour:
   cardName: Atttack
   description: Allows youy to attack ship within range.
   cost: 1
-  idWorksOn: 00000000i
+  idWorksOn: 0000000001000000i
   actionOnMap: 1

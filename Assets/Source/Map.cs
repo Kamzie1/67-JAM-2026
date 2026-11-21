@@ -10,7 +10,7 @@ namespace YANG
     public class Map
     {
         public List<Position> Highlights { get; private set; } 
-        public List<Object> Objects { get; }
+        public List<Entity> Entities { get; }
         private readonly Board _board;
 
         public int Rows => _board.Rows;
@@ -19,20 +19,20 @@ namespace YANG
         public Map(int rows, int cols)
         {
             _board = new Board(rows, cols);
-            Objects = new List<Object>();
+            Entities = new List<Entity>();
             Highlights = new List<Position>();
         }
         
 
-        public void Spawn(Object o)
+        public void Spawn(Entity o)
         {
-            Objects.Add(o);
+            Entities.Add(o);
         }
 
-        public bool TryGetObject(Position position, out Object obj)
+        public bool TryGetObject(Position position, out Entity obj)
         {
             obj = null;
-            foreach (var o in Objects.Where(o => o.Position.Equals(position)))
+            foreach (var o in Entities.Where(o => o.Position.Equals(position)))
             {
                 obj = o;
                 return true;
@@ -44,7 +44,7 @@ namespace YANG
         public List<Position> AttackablePositions(Position start)
         {
             List<Position> positions = new List<Position>();
-            bool isObjectAtPosition = TryGetObject(start, out Object obj);
+            bool isObjectAtPosition = TryGetObject(start, out Entity obj);
             if (!isObjectAtPosition || obj is not Ship ship)
             {
                 Highlights = positions;
@@ -76,7 +76,7 @@ namespace YANG
 
                     visited[n.X][n.Y] = true;
                     queue.Enqueue(new ValueTuple<Position, int>(n, points));
-                    foreach (var enemy in Objects)
+                    foreach (var enemy in Entities)
                     {
                         if (enemy.PlayerId != ship.PlayerId && enemy.Position.Equals(n))
                         {
@@ -93,10 +93,9 @@ namespace YANG
         public List<Position> MovablePositions(Position start)
         {
             List<Position> positions = new List<Position>();
-            bool isObjectAtPosition = TryGetObject(start, out Object obj);
+            bool isObjectAtPosition = TryGetObject(start, out Entity obj);
             if (!isObjectAtPosition || obj is not Ship ship)
             {
-                Debug.Log("Casnt move");
                 Highlights = positions;
                 return Highlights;
             }
@@ -127,7 +126,7 @@ namespace YANG
                     visited[n.X][n.Y] = true;
                     bool anyObject = false;
                     bool enemy = false;
-                    foreach (var o in Objects)
+                    foreach (var o in Entities)
                     {
                         if (o.Position.Equals(n))
                         {
@@ -142,7 +141,6 @@ namespace YANG
 
                     if (!enemy)
                     {
-                        Debug.Log(n.X + "," + n.Y+"|"+points);
                         queue.Enqueue(new ValueTuple<Position, int>(n, points));
                     }
 
@@ -160,7 +158,7 @@ namespace YANG
         public List<Position> AppliablePositions(ActionOnMap action,IReadOnlyList<int> ids, int playerId)
         {
             List<Position> positions = new List<Position>();
-            foreach (var o in Objects)
+            foreach (var o in Entities)
             {
                 if (o is Ship ship && ids.Contains(ship.ShipId))
                 {
@@ -197,7 +195,7 @@ namespace YANG
                 return false;
             }
 
-            bool isObjectAtPosition = TryGetObject(start, out Object obj);
+            bool isObjectAtPosition = TryGetObject(start, out Entity obj);
             if (!isObjectAtPosition || obj is not Ship getShip)
             {
                 return false;
@@ -220,7 +218,6 @@ namespace YANG
             {
                 if (enemy is Base)
                 {
-                    Debug.Log("Zabity gosc");
                     GameEvents.DeadPlayer?.Invoke(enemy.PlayerId);
                     return true;
                 }
@@ -234,8 +231,7 @@ namespace YANG
 
         private void CheckPlayerDeath(int playerId)
         {
-            Debug.Log("Test Konca");
-            foreach (var obj in Objects )
+            foreach (var obj in Entities )
             {
                 if (obj is Ship ship && ship.PlayerId == playerId)
                 {
@@ -243,20 +239,19 @@ namespace YANG
                 }
                 
             }
-            Debug.LogWarning("Zabity");
             GameEvents.DeadPlayer?.Invoke(playerId);
         }
 
-        private bool ValidateAttack(Position start, Position end, int playerId, out Ship ship, out ObjectWithHealth enemyObject)
+        private bool ValidateAttack(Position start, Position end, int playerId, out Ship ship, out EntityWithHealth enemyEntity)
         {
             ship = null;
-            enemyObject = null;
+            enemyEntity = null;
             if (!Highlights.Contains(start) || !Highlights.Contains(end) || start.Equals(end))
             {
                 return false;
             }
 
-            bool isObjectAtPosition = TryGetObject(start, out Object obj);
+            bool isObjectAtPosition = TryGetObject(start, out Entity obj);
             if (!isObjectAtPosition || obj.PlayerId != playerId || obj is not Ship getShip)
             {
                 return false;
@@ -264,13 +259,13 @@ namespace YANG
 
             ship = getShip;
 
-            bool isEnemyAtPosition = TryGetObject(end, out Object enemy);
-            if (!isEnemyAtPosition || enemy.PlayerId == playerId || enemy is not ObjectWithHealth killableObject)
+            bool isEnemyAtPosition = TryGetObject(end, out Entity enemy);
+            if (!isEnemyAtPosition || enemy.PlayerId == playerId || enemy is not EntityWithHealth killableObject)
             {
                 return false;
             }
 
-            enemyObject = killableObject;
+            enemyEntity = killableObject;
 
             return true;
         }
@@ -295,7 +290,7 @@ namespace YANG
 
         public void Reset(ShipsDatabase shipsDatabase)
         {
-            foreach (var o in Objects)
+            foreach (var o in Entities)
             {
                 if (o is Ship ship)
                 {

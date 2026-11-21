@@ -10,13 +10,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3112fb98b284466896f268954f1cfca5, type: 3}
-  m_Name: Cruiser
+  m_Name: Scout
   m_EditorClassIdentifier: Assembly-CSharp::YANG.ShipData
-  id: 0
-  shipName: Cruiser
-  description: Light ship
-  movement: 4
-  range: 2
-  damage: 10
-  health: 30
+  id: 1
+  shipName: Scout
+  description: Light and fast
+  movement: 7
+  range: 3
+  damage: 5
+  health: 15
+  unitSprite: {fileID: -2034265696745230030, guid: 00d7935adce36604cac83132c9c0637b, type: 3}
   cardIds: 0000000001000000i

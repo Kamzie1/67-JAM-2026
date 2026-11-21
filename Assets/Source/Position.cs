@@ -68,9 +68,8 @@ namespace YANG
            return new Vector3Int(p.X, p.Y, 0); 
         }
 
-        public Vector3Int ToVector3()
+        public Vector3Int ToVector3(int rows, int cols)
         {
-            return new Vector3Int(X , Y, 0);
-        }
+            return new Vector3Int(Y-cols/2, rows/2 - X, 0);        }
     }
 }
