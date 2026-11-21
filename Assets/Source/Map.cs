@@ -218,7 +218,7 @@ namespace YANG
             {
                 if (enemy is Base)
                 {
-                    GameEvents.DeadPlayer?.Invoke(enemy.PlayerId);
+                    GameEvents.PlayerDeath?.Invoke(enemy.PlayerId);
                 }
 
                 return 2;
@@ -230,19 +230,15 @@ namespace YANG
 
         public void CheckPlayerDeath(int playerId)
         {
-            Debug.Log("Cheking");
             foreach (var obj in Entities )
             {
-                Debug.Log(obj);
                 if (obj is Ship ship && ship.PlayerId == playerId)
                 {
-                    Debug.Log("Ship");
                     return; 
                 }
                 
             }
-            Debug.Log("Dead");
-            GameEvents.DeadPlayer?.Invoke(playerId);
+            GameEvents.PlayerDeath?.Invoke(playerId);
         }
 
         private bool ValidateAttack(Position start, Position end, int playerId, out Ship ship, out EntityWithHealth enemyEntity)
