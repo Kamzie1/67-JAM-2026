@@ -19,6 +19,7 @@ namespace YANG
         public EntityView entityPrefab;
         [SerializeField] private AudioClip hitClip;
         [SerializeField] private AudioClip clickClip;
+        [SerializeField] private Sprite BaseSprite;
 
         private Vector3 origin;
         
@@ -45,17 +46,24 @@ namespace YANG
         private void CreateFleet()
         {
            SpawnBase(new Position(7, 0), 0);
-           SpawnBase(new Position(8, 2), 1);
+           SpawnBase(new Position(7, 14), 1);
            
            SpawnShip(new Position(7, 1), 0, 0);
            SpawnShip(new Position(6, 1), 0, 1);
-           SpawnShip(new Position(7, 3), 1, 0);
-           SpawnShip(new Position(7, 4), 1, 1);
+           SpawnShip(new Position(7, 13), 1, 0);
+           SpawnShip(new Position(6, 12), 1, 1);
         }
         
         private void SpawnBase(Position position, int playerId)
         {
-            _map.Spawn(new Base(_map.Entities.Count, position, playerId)); 
+            var newBase = new Base(_map.Entities.Count, position, playerId);
+            _map.Spawn(newBase); 
+            Vector3 worldPos = hexTilemap.GetCellCenterWorld(position.ToVector3(_map.Rows, _map.Cols));
+
+            EntityView visualUnit = Instantiate(entityPrefab, worldPos, Quaternion.identity);
+            visualUnit.name = "Base";
+        
+            visualUnit.Initialize(BaseSprite, worldPos, newBase);
         }
 
         private void SpawnShip(Position position, int playerId, int shipId)
