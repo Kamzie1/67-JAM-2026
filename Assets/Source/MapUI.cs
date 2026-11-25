@@ -15,7 +15,8 @@ namespace YANG
         public TileHighlighter highlighter;
         public ShipsDatabase shipsDatabase;
         public Camera mainCamera;
-        public TMP_Text Stats;
+        public StatDisplay Stats;
+        public EntityView entityPrefab;
 
         private Vector3 origin;
         
@@ -23,19 +24,15 @@ namespace YANG
         private Position? _start;
         private Position? _end;
         private ActionOnMap? _action;
-        private List<Sprite> _sprites;
+        private List<EntityView> _entities;
         private int _player;
 
         private void Awake()
         {
             mainCamera = Camera.main;
             _map = new Map(15, 15);
+            _entities = new List<EntityView>();
             CreateFleet();
-            _sprites = new List<Sprite>();
-            foreach (var obj in _map.Objects)
-            {
-                _sprites.Add(Sprite.Create(obj));
-            }
         }
         
         void Start()
@@ -49,25 +46,37 @@ namespace YANG
            SpawnBase(new Position(8, 2), 1);
            
            SpawnShip(new Position(7, 1), 0, 0);
+           SpawnShip(new Position(6, 1), 0, 1);
            SpawnShip(new Position(7, 3), 1, 0);
+           SpawnShip(new Position(7, 4), 1, 1);
         }
-
+        
         private void SpawnBase(Position position, int playerId)
         {
-            _map.Spawn(new Base(_map.Objects.Count, position, playerId)); 
+            _map.Spawn(new Base(_map.Entities.Count, position, playerId)); 
         }
 
         private void SpawnShip(Position position, int playerId, int shipId)
         {
             ShipData data = shipsDatabase.GetShip(shipId);
-            _map.Spawn(new Ship(_map.Objects.Count, position, playerId, shipId, data.Health, data.Damage, data.Movement, data.Range));
+            Ship newShip = new Ship(_map.Entities.Count, position, playerId, shipId, data.Health, data.Damage,
+                data.Movement, data.Range);
+            _map.Spawn(newShip);
+            Vector3 worldPos = hexTilemap.GetCellCenterWorld(position.ToVector3(_map.Rows, _map.Cols));
+
+            EntityView visualUnit = Instantiate(entityPrefab, worldPos, Quaternion.identity);
+            visualUnit.name = $"{data.ShipName}";
+        
+            visualUnit.Initialize(data.UnitSprite, worldPos, newShip);
+
+            _entities.Add(visualUnit);
         }
 
         private void DestroySprite(Position position)
         {
             _map.TryGetObject(position, out var obj);
-            Sprite toDestroy = null;
-            foreach (var sprite in _sprites)
+            EntityView toDestroy = null;
+            foreach (var sprite in _entities)
             {
                 if (sprite.Id == obj.Id)
                 {
@@ -78,21 +87,20 @@ namespace YANG
             if (toDestroy is not null)
             {
                 Destroy(toDestroy.gameObject);
-                _sprites.Remove(toDestroy);
-                _map.Objects.Remove(obj);
+                _entities.Remove(toDestroy);
+                _map.Entities.Remove(obj);
             }
         }
 
         private void UpdateSprite(Position position)
         {
             _map.TryGetObject(position, out var obj);
-            foreach (var sprite in _sprites)
+            foreach (var sprite in _entities)
             {
                 if (sprite.Id == obj.Id)
                 {
-                    Vector3 newPos = hexTilemap.GetCellCenterWorld(position.ToVector3());
-                    Vector3 vec = new Vector3(newPos.y - _map.Cols/2,_map.Rows/2  - newPos.x, 0);
-                    sprite.transform.position = vec;
+                    Vector3 newPos = hexTilemap.GetCellCenterWorld(position.ToVector3(_map.Rows, _map.Cols));
+                    sprite.transform.position = newPos;
                 }
             }
         }
@@ -131,7 +139,6 @@ namespace YANG
             {
                 return; 
             }
-            Debug.Log(_action+ ", "+ _start + ", "+ _end);
             if (_action == null)
             { 
                 HandleLeftClick(); 
@@ -154,16 +161,14 @@ namespace YANG
                 ClearHighlights();
                 return;
             }
-            Debug.Log(position.X + " " + position.Y);
             if (_map.TryGetObject(position, out var obj))
             {
-                Stats.text = ToText(obj);
+                Stats.ShowUnitStats(obj);
                 highlighter.HighlightTiles(new List<Position>(){ToPosition(cellPosition)}, _map.Rows, _map.Cols);
             }
             else
             {
-                Debug.Log("Clearing");
-                Stats.text = "";
+                Stats.Hide();
                 ClearHighlights();
             }
             
@@ -174,29 +179,8 @@ namespace YANG
             return new Position(_map.Cols/2 -cellPosition.y, cellPosition.x + _map.Rows / 2);
         }
 
-        private string ToText(Object obj)
-        {
-            if (obj is Base baza)
-            {
-                return $@"Base: {baza.PlayerId}\nHealth: {baza.Health}";
-            }
-            if (obj is Ship ship)
-            {
-                int id = ship.ShipId;
-                ShipData data = shipsDatabase.GetShip(id);
-                if (data is null)
-                {
-                    return "";
-                }
-                return $@"\t{data.name}\n{data.Description}\n-------\nHealth: {ship.Health}\nDamage: {ship.Damage}\nMovement: {ship.Movement}\nRange: {ship.Range}";
-            }
-
-            return "";
-        }
-
         private void HandleCardAction()
         {
-            Debug.Log(_action + ", " + _start + ", " + _end);
             Vector3 mousePos = mainCamera.ScreenToWorldPoint(Mouse.current.position.ReadValue());
             mousePos.z = 0;
 
@@ -204,7 +188,6 @@ namespace YANG
             Position position = ToPosition(cellPosition);
             if (!_map.Highlights.Contains(position) || !position.IsValid(_map.Rows, _map.Cols))
             {
-                Debug.Log("Clear not in high");
                 ClearHighlights();
                 return;
             }
@@ -220,11 +203,9 @@ namespace YANG
 
         private void HandleFirstClick(Position position)
         {
-            Debug.Log(position.X + " " + position.Y);
             _start = position;
             if (_action == ActionOnMap.Move)
             {
-                Debug.Log("highlight moves");
                 highlighter.HighlightTiles(_map.MovablePositions((Position)_start), _map.Rows, _map.Cols);
             }
             else if(_action == ActionOnMap.Attack)
@@ -239,7 +220,6 @@ namespace YANG
         }
         private void HandleSecondClick(Position position)
         {
-            Debug.Log(position.X + " " + position.Y);
             _end = position;
             if (_action == ActionOnMap.Move)
             {

@@ -33,7 +33,6 @@ namespace YANG
         
         public void Move()
         {
-            Debug.Log("Move!");
             var card = cardsDatabase.GetCard(0);
             if (card == null || card is not CardOnMapData m)
             {
@@ -45,7 +44,6 @@ namespace YANG
         
         public void Attack()
         {
-            Debug.Log("Attack!");
             var card = cardsDatabase.GetCard(1);
             if (card == null || card is not CardOnMapData m)
             {

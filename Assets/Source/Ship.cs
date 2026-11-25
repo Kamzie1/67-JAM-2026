@@ -2,7 +2,7 @@
 
 namespace YANG
 {
-    public class Ship : ObjectWithHealth
+    public class Ship : EntityWithHealth
     {
         public int ShipId { get; }
         public int Movement{get;set;}
@@ -23,6 +23,11 @@ namespace YANG
             Range = range;
             ShipId = shipId;
             CanMove = true;
+        }
+
+        public override string DisplayStats()
+        {
+            return $"HEALTH: {Health}\nMOVEMENT: {Movement}\nDAMAGE: {Damage}\nRANGE: {Range}";
         }
     }
 }

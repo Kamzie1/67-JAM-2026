@@ -49,15 +49,14 @@ namespace YANG
 
         private void HandlePlayerDeath(int playerId)
         {
-            Debug.Log($"Player {playerId} has been death");
             SceneManager.LoadScene(EndGameSceneName);
             if (playerId == 0)
             {
-               GameData.EndgameMessage = "Przegrałeś!";
+               GameData.EndgameMessage = "YOU LOST";
             }
             else
             {
-                GameData.EndgameMessage = "Wygrałeś!";
+                GameData.EndgameMessage = "YOU WON";
             }
         }
     }
