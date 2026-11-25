@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 
 namespace YANG
@@ -14,12 +15,14 @@ namespace YANG
         [SerializeField] private int cardsToDraw = 1;
         [SerializeField] private bool autoEndTurnAtZeroPoints = false;
         [SerializeField] private List<CardData> startingDeck = new();
-        private int playerId = 0;
+        [SerializeField] private TMP_Text currentPlayerBaner;
+        [SerializeField] private TMP_Text TurnBanner;
 
         private readonly List<Player> players = new();
 
         public IReadOnlyList<Player> Players => players;
         public int CurrentPlayerId { get; private set; }
+        public int Turn { get; private set; }
         public TurnPhase Phase { get; private set; } = TurnPhase.NotStarted;
         public Player CurrentPlayer => players[CurrentPlayerId];
 
@@ -31,16 +34,12 @@ namespace YANG
         {
             players.Clear();
             for (int i = 0; i < playerCount; i++)
-                if (i == playerId)
-                {
-                    players.Add(new Player(startingDeck, maxActionPoints, startingRegen));
-                }
-                else
-                {
-                    players.Add(new BasicAI(startingDeck, maxActionPoints, startingRegen));
-                }
+            {
+                players.Add(new Player(startingDeck, maxActionPoints, startingRegen));
+            }
 
             CurrentPlayerId = 0;
+            Turn = 0;
             BeginTurn();
         }
         
@@ -60,6 +59,9 @@ namespace YANG
             TurnEnded?.Invoke(CurrentPlayerId);
 
             CurrentPlayerId = (CurrentPlayerId + 1) % players.Count;
+            Turn += 1;
+            currentPlayerBaner.text = $"PLAYER {CurrentPlayerId}";
+            TurnBanner.text = $"TURN {Turn/2 + 1}";
             BeginTurn();
         }
 

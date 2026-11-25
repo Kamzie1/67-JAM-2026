@@ -210,26 +210,25 @@ namespace YANG
         }
 
 
-        public bool TryAttackKill(Position start, Position end, int playerId)
+        public int TryAttackKill(Position start, Position end, int playerId)
         {
-            if (!ValidateAttack(start, end, playerId, out var ship, out var enemy)) return false;
+            if (!ValidateAttack(start, end, playerId, out var ship, out var enemy)) return 0;
             enemy.Health -= ship.Damage;
             if (enemy.Health <= 0)
             {
                 if (enemy is Base)
                 {
-                    GameEvents.DeadPlayer?.Invoke(enemy.PlayerId);
-                    return true;
+                    GameEvents.PlayerDeath?.Invoke(enemy.PlayerId);
                 }
-                CheckPlayerDeath(enemy.Id);
-                return true;
+
+                return 2;
             }
 
 
-            return false;
+            return 1;
         }
 
-        private void CheckPlayerDeath(int playerId)
+        public void CheckPlayerDeath(int playerId)
         {
             foreach (var obj in Entities )
             {
@@ -239,7 +238,7 @@ namespace YANG
                 }
                 
             }
-            GameEvents.DeadPlayer?.Invoke(playerId);
+            GameEvents.PlayerDeath?.Invoke(playerId);
         }
 
         private bool ValidateAttack(Position start, Position end, int playerId, out Ship ship, out EntityWithHealth enemyEntity)
@@ -282,8 +281,6 @@ namespace YANG
                 default:
                     return false;
             }
-
-            ;
 
             return true;
         }

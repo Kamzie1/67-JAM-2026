@@ -39,7 +39,7 @@ namespace YANG
                 Debug.LogError($"Card {card} not found");
                 return;
             }
-            map.Apply(m.Action, m.IdWorksOn, 0);     
+            map.Apply(m.Action, m.IdWorksOn, game.CurrentPlayerId);     
         }
         
         public void Attack()
@@ -50,7 +50,7 @@ namespace YANG
                 Debug.LogError($"Card {card} not found");
                 return;
             }
-            map.Apply(m.Action, m.IdWorksOn, 0);     
+            map.Apply(m.Action, m.IdWorksOn, game.CurrentPlayerId);     
         }
     }
 }

@@ -7,6 +7,7 @@ namespace YANG
         [SerializeField] private SpriteRenderer spriteRenderer;
         private Entity _entity;
         public int Id => _entity.Id;
+        public int PlayerId => _entity.PlayerId;
 
         public void Initialize(Sprite unitSprite, Vector3 worldPosition, Entity entity)
         {
